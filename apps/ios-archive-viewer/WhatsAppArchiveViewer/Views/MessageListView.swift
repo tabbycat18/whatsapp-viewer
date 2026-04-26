@@ -6,25 +6,37 @@ struct MessageListView: View {
     let loadedLimit: Int
 
     var body: some View {
-        List {
-            Section {
-                ForEach(messages) { message in
-                    MessageBubbleView(message: message)
-                        .listRowSeparator(.hidden)
+        ScrollViewReader { proxy in
+            List {
+                Section {
+                    ForEach(messages) { message in
+                        MessageBubbleView(message: message)
+                            .id(message.id)
+                            .listRowSeparator(.hidden)
+                    }
+                } header: {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(chat.title)
+                            .font(.headline)
+                        Text(summaryText)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .textCase(nil)
+                    .padding(.vertical, 6)
                 }
-            } header: {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(chat.title)
-                        .font(.headline)
-                    Text(summaryText)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                .textCase(nil)
-                .padding(.vertical, 6)
+            }
+            .listStyle(.plain)
+            .onAppear {
+                scrollToLatestMessage(using: proxy, animated: false)
+            }
+            .onChange(of: chat.id) { _, _ in
+                scrollToLatestMessage(using: proxy, animated: false)
+            }
+            .onChange(of: messages.last?.id) { _, _ in
+                scrollToLatestMessage(using: proxy, animated: false)
             }
         }
-        .listStyle(.plain)
         .navigationTitle(chat.title)
     }
 
@@ -33,6 +45,19 @@ struct MessageListView: View {
             return "Showing latest \(messages.count.formatted()) of \(chat.messageCount.formatted()) messages"
         }
         return "\(chat.messageCount.formatted()) messages"
+    }
+
+    private func scrollToLatestMessage(using proxy: ScrollViewProxy, animated: Bool) {
+        guard let latestMessageID = messages.last?.id else { return }
+        DispatchQueue.main.async {
+            if animated {
+                withAnimation {
+                    proxy.scrollTo(latestMessageID, anchor: .bottom)
+                }
+            } else {
+                proxy.scrollTo(latestMessageID, anchor: .bottom)
+            }
+        }
     }
 }
 
