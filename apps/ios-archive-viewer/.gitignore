@@ -1,0 +1,7 @@
+ChatStorage.sqlite*
+ContactsV2.sqlite*
+Media/
+Message/
+DerivedData/
+*.xcuserdata/
+xcuserdata/

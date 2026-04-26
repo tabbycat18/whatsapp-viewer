@@ -1,0 +1,94 @@
+import SwiftUI
+
+struct MessageListView: View {
+    let chat: ChatSummary
+    let messages: [MessageRow]
+    let loadedLimit: Int
+
+    var body: some View {
+        List {
+            Section {
+                ForEach(messages) { message in
+                    MessageBubbleView(message: message)
+                        .listRowSeparator(.hidden)
+                }
+            } header: {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(chat.title)
+                        .font(.headline)
+                    Text(summaryText)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .textCase(nil)
+                .padding(.vertical, 6)
+            }
+        }
+        .listStyle(.plain)
+        .navigationTitle(chat.title)
+    }
+
+    private var summaryText: String {
+        if chat.messageCount > loadedLimit {
+            return "Showing latest \(messages.count.formatted()) of \(chat.messageCount.formatted()) messages"
+        }
+        return "\(chat.messageCount.formatted()) messages"
+    }
+}
+
+private struct MessageBubbleView: View {
+    let message: MessageRow
+
+    var body: some View {
+        HStack {
+            if message.isFromMe {
+                Spacer(minLength: 36)
+            }
+
+            VStack(alignment: message.isFromMe ? .trailing : .leading, spacing: 4) {
+                Text(senderLabel)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                Text(displayText)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(message.isFromMe ? Color.green.opacity(0.18) : Color.gray.opacity(0.12))
+                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    .textSelection(.enabled)
+
+                if let messageDate = message.messageDate {
+                    Text(Self.dateFormatter.string(from: messageDate))
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            if !message.isFromMe {
+                Spacer(minLength: 36)
+            }
+        }
+        .padding(.vertical, 3)
+    }
+
+    private var senderLabel: String {
+        if message.isFromMe {
+            return "You"
+        }
+        return message.pushName?.isEmpty == false ? message.pushName! : (message.senderJID ?? "Them")
+    }
+
+    private var displayText: String {
+        guard let text = message.text, !text.isEmpty else {
+            return "Unsupported or empty message"
+        }
+        return text
+    }
+
+    private static let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        return formatter
+    }()
+}
