@@ -57,7 +57,11 @@ final class ArchiveStore: ObservableObject {
             return
         }
 
-        openDatabase(databaseURL: databaseURL, securityScopedURL: nil)
+        openDatabase(
+            databaseURL: databaseURL,
+            archiveRootURL: databaseURL.deletingLastPathComponent(),
+            securityScopedURL: nil
+        )
     }
 
     func openPickedURL(_ url: URL) {
@@ -70,8 +74,13 @@ final class ArchiveStore: ObservableObject {
 
         do {
             database = nil
+            let sourceArchiveRootURL = try archiveRootURL(for: url)
             let importedDatabaseURL = try importArchive(from: url)
-            openDatabase(databaseURL: importedDatabaseURL, securityScopedURL: nil)
+            openDatabase(
+                databaseURL: importedDatabaseURL,
+                archiveRootURL: sourceArchiveRootURL,
+                securityScopedURL: url
+            )
         } catch {
             database = nil
             chats = []
@@ -93,9 +102,13 @@ final class ArchiveStore: ObservableObject {
         }
     }
 
-    private func openDatabase(databaseURL: URL, securityScopedURL: URL?) {
+    private func openDatabase(databaseURL: URL, archiveRootURL: URL, securityScopedURL: URL?) {
         do {
-            let openedDatabase = try WhatsAppDatabase(databaseURL: databaseURL, securityScopedURL: securityScopedURL)
+            let openedDatabase = try WhatsAppDatabase(
+                databaseURL: databaseURL,
+                archiveRootURL: archiveRootURL,
+                securityScopedURL: securityScopedURL
+            )
             let loadedChats = try openedDatabase.fetchChats()
             database = openedDatabase
             chats = loadedChats
@@ -167,6 +180,13 @@ final class ArchiveStore: ObservableObject {
             return pickedURL.appendingPathComponent("ChatStorage.sqlite")
         }
         return pickedURL
+    }
+
+    private func archiveRootURL(for pickedURL: URL) throws -> URL {
+        if try isDirectory(pickedURL) {
+            return pickedURL
+        }
+        return pickedURL.deletingLastPathComponent()
     }
 
     private func isDirectory(_ url: URL) throws -> Bool {

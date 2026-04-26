@@ -105,7 +105,10 @@ private struct MessageBubbleView: View {
 
     private var displayText: String {
         guard let text = message.text, !text.isEmpty else {
-            return "Unsupported or empty message"
+            if let media = message.media {
+                return media.kind.placeholderText
+            }
+            return "Unsupported message"
         }
         return text
     }
