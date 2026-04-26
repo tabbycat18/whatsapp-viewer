@@ -1,5 +1,6 @@
 WhatsApp Viewer.ncb
 WhatsApp Viewer.suo
+.DS_Store
 
 project/WhatsApp Viewer.vcproj.Hauptrechner.neonew.user
 project/Debug
@@ -12,6 +13,7 @@ data/test-database.db
 data/test-database-large.db
 data/test-database-large.sql
 data/private
+data/ios-html-export*/
 
 resources/Resources.aps
 resources/Resources.res
@@ -19,8 +21,11 @@ resources/Resources.res
 whatsapp-viewer.bundle
 
 .vagrant/
+.venv/
 .vs/
 build/
 bugs/
 releases/
 target/
+data/iphone-backup/
+data/iphone-whatsapp-export/
